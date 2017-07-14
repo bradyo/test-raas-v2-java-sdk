@@ -20,9 +20,9 @@ import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +34,7 @@ public class Example {
 
     private final RaasClient raasClient;
     private final ObjectMapper objectMapper;
+    private final Environment environment;
 
     @EventListener(ContextRefreshedEvent.class)
     public void run() throws Throwable {
@@ -76,26 +77,29 @@ public class Example {
         log.info("List Account Summary by Customer: " + json(accountSummaryModelList));
 
         // For creating an order, we need to use a funded account
-        String fundedCustomerIdentifier = "boisetest";
-        String fundedAccountIdentifier = "boisetest";
+        String fundedCustomerIdentifier = environment.getProperty("fundedCustomerIdentifier");
+        String fundedAccountIdentifier = environment.getProperty("fundedAccountIdentifier");
 
         String externalRefId = UUID.randomUUID().toString();
 
         NameEmailModel recipientNameEmailModel = new NameEmailModel();
         recipientNameEmailModel.setFirstName("Java");
         recipientNameEmailModel.setLastName("Tester");
-        recipientNameEmailModel.setEmail("brady@tangocard.com");
+        recipientNameEmailModel.setEmail(environment.getProperty("recipientEmail"));
+
+        String variableUtid = environment.getProperty("variableUtid");
 
         CreateOrderRequestModel createOrderRequestModel = new CreateOrderRequestModel();
+        createOrderRequestModel.setExternalRefID(externalRefId);
         createOrderRequestModel.setCustomerIdentifier(fundedCustomerIdentifier);
         createOrderRequestModel.setAccountIdentifier(fundedAccountIdentifier);
         createOrderRequestModel.setRecipient(recipientNameEmailModel);
         createOrderRequestModel.setSendEmail(true);
-//        createOrderRequestModel.setUtid("U666425"); // Amazon.com Variable item
-//        createOrderRequestModel.setAmount(1.00);
+        createOrderRequestModel.setUtid(variableUtid); // Amazon.com Variable item
+        createOrderRequestModel.setAmount(1.00);
 
-        createOrderRequestModel.setUtid("U106098"); // 1-800 Flowers Fixed $50 item
-        createOrderRequestModel.setExternalRefID(externalRefId);
+        // todo: fixed value items don't work!
+//        createOrderRequestModel.setUtid("U106098"); // 1-800 Flowers Fixed $50 item
 
         log.info("Create Order: " + json(createOrderRequestModel));
         OrderModel createdOrderModel = raasClient.getOrders().createOrder(createOrderRequestModel);
