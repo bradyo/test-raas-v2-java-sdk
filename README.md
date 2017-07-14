@@ -2,6 +2,10 @@
  
 Example application using the [Tango Card RaaS Java SDK](https://github.com/tangocard/raas-v2-sdk-java).
 
+This application runs through the various RaaS V2 API endpoints using
+the SDK and outputs the results.
+
+See: [Example.java](src/main/java/com/example/demo/Example.java)
 
 ## Dependencies
 
